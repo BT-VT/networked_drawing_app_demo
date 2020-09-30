@@ -1,7 +1,7 @@
 // set up express server
 var express = require("express");
 var app = express();
-var portNum = 3000;
+var portNum = process.env.PORT || '5000';
 var server = app.listen(portNum);
 app.use(express.static("public"));
 
