@@ -1,7 +1,7 @@
 // set up express server
-/*var express = require("express");
+var express = require("express");
 var app = express();
-var portNum = 80
+var portNum = 3000;
 var server = app.listen(portNum);
 app.use(express.static("public"));
 
@@ -28,4 +28,3 @@ io.on('connection', (socket) => {
         io.emit('finishPos');
     })
 });
-*/
