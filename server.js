@@ -1,5 +1,5 @@
 // set up express server
-var express = require("express");
+/*var express = require("express");
 var app = express();
 var portNum = 80
 var server = app.listen(portNum);
@@ -28,3 +28,4 @@ io.on('connection', (socket) => {
         io.emit('finishPos');
     })
 });
+*/
