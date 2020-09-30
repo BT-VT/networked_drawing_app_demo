@@ -66,11 +66,15 @@ window.addEventListener('load', () => {
     // prevents other clients from emitting drawing coordinates to server
     function lockDrawing() {
         LOCKED = true;
+        console.log('*********** lock is LOCKED');
     }
-
     // called when mouse button is pressed down, allows draw() to start
     // emitting drawing coordinate data to server
     function startPosition(e) {
+        if(LOCKED) {
+            console.log('cant draw, lock is locked');
+            return;
+        }
         painting = true;
         let pos = getMousePos(canvas, e);
         let attr = getLineAttributes();
@@ -100,6 +104,7 @@ window.addEventListener('load', () => {
     function remoteFinishPosition() {
         c.beginPath();          // end the old drawing path
         LOCKED = false;
+        console.log('lock is unlocked');
     }
 
     // called when mouse is moved. If permitted, sends drawing coordinates to server.
@@ -131,13 +136,13 @@ window.addEventListener('load', () => {
 
     // not currently used
     function resizeCanvas(x=-1, y=-1) {
-    if(x < 0 || y < 0) {
-      canvas.width = window.innerWidth * 0.8;
-      canvas.height = window.innerHeight * 0.8;
-    }
-    else {
-      canvas.width = x;
-      canvas.height = y;
-    }
+        if(x < 0 || y < 0) {
+          canvas.width = window.innerWidth * 0.8;
+          canvas.height = window.innerHeight * 0.8;
+        }
+        else {
+          canvas.width = x;
+          canvas.height = y;
+        }
     }
     });
