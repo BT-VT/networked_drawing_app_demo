@@ -11,6 +11,10 @@ console.log("server running on port: " + portNum);
 var socket = require("socket.io");
 var io = socket(server);
 
+app.get('/', (req,res) => {
+    res.send('Welcome to Chalkboard');
+});
+
 io.on('connection', (socket) => {
     console.log("new connection: " + socket.id);
 
