@@ -19,6 +19,7 @@ window.addEventListener('load', () => {
     canvas.addEventListener("mousemove", draw);
     // window.addEventListener('resize', resizeCanvas);
 
+    // socket listeners
     socket.on('mousePos', remoteDraw);
     socket.on('startPos', remoteStartPosition);
     socket.on('lock', lockDrawing);
@@ -41,6 +42,7 @@ window.addEventListener('load', () => {
     }
 
     // set attributes for a canvas line
+    // set rand = false to limit amount of random colors used
     function getLineAttributes(rand = true) {
 
         let colors = ["#8093F1", "#F9DC5C", "#EA526F", "#70F8BA", "#1B98E0", ];
@@ -60,14 +62,14 @@ window.addEventListener('load', () => {
         }
     }
 
-    // called for every other client when one client begins drawing.
+    // called by every other client when one client begins drawing.
     // prevents other clients from emitting drawing coordinates to server
     function lockDrawing() {
         LOCKED = true;
     }
 
     // called when mouse button is pressed down, allows draw() to start
-    // emitting drawing coordinates data to server
+    // emitting drawing coordinate data to server
     function startPosition(e) {
         painting = true;
         let pos = getMousePos(canvas, e);
@@ -77,33 +79,32 @@ window.addEventListener('load', () => {
             attr: attr
         }
         socket.emit('startPos', data);       // this emit is only necessary for drawing single points
-
     }
 
+    // called when socket detects incoming data labeled as 'startPos', indicating that
+    // a client has clicked on the canvas to begin drawing (starting with a single point)
     function remoteStartPosition(data) {
-        // could add painting = false here ?
-        c.moveTo(data.pos.x, data.pos.y);           // go to start location of path
+        c.moveTo(data.pos.x, data.pos.y);   // go to start location of path
         remoteDraw(data);                   // call to draw point
     }
 
     // called when mouse is released, stops draw() from emiting Drawing
-    // coordinates to server
+    // coordinates to server when mouse is moved without being clicked
     function finishPosition() {
         painting = false;
         socket.emit('finishPos');
     }
 
-    // must start new line next time something is drawn
+    // called when socket detects incoming data labeled as 'finishPos', indicating that
+    // the client who has been drawing is finished
     function remoteFinishPosition() {
-        c.beginPath();
+        c.beginPath();          // end the old drawing path
         LOCKED = false;
     }
 
-    // called when mouse is moved, draws relative to canvas object
-    // coordinates (0,0) refer to top left of canvas for canvas functions.
-    // therefore, coordinates relative to the viewport must be converted.
+    // called when mouse is moved. If permitted, sends drawing coordinates to server.
     function draw(e) {
-        // if mouse isnt clicked down, return
+        // if mouse isnt clicked down or someone else is drawing, return
         if(!painting || LOCKED) return;
 
         let pos = getMousePos(canvas, e);
@@ -115,17 +116,9 @@ window.addEventListener('load', () => {
         socket.emit('mousePos', data);
     }
 
-    // called when socket detects incoming drawing coordinates from server.
-    // data is an object with x and y as keys, and their corresponding coordinates
-    // as values.
+    // called when socket detects incoming drawing coordinates from server ('mousePos').
     function remoteDraw(data) {
-        console.log('drawing');
-        // c.lineWidth = 10;
-        // c.lineCap = "round";
-        // c.strokeStyle = `rgba(${Math.random() * 255},
-        //                       ${Math.random() * 255},
-        //                       ${Math.random() * 255}, 1)`;
-
+        // set line attributes according to data received from server
         c.lineWidth = data.attr.lineWidth;
         c.lineCap = data.attr.lineCap;
         c.strokeStyle = data.attr.strokeStyle;
