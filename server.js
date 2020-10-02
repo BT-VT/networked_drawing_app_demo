@@ -19,8 +19,8 @@ io.on('connection', (socket) => {
     console.log("new connection: " + socket.id);
 
     socket.on('startPos', (data) => {
-        socket.broadcast.emit('lock');
-        io.emit('startPos', data);
+        socket.broadcast.emit('lock');        // broadcast to all sockets except sender who triggered event
+        io.emit('startPos', data);            // broadcast to all sockets, including sender who triggered event
     });
 
     socket.on('mousePos', (data) => {
