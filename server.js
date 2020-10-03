@@ -1,42 +1,34 @@
-const express = require('express')
-const app = express()
-// const cors = require('cors')
-// app.use(cors())
-const server = require('http').Server(app)
-const io = require('socket.io')(server)
-const { ExpressPeerServer } = require('peer');
-const peerServer = ExpressPeerServer(server, {
-  debug: true
+// set up express server
+var express = require("express");
+var app = express();
+var portNum = process.env.PORT || '4500';
+var server = app.listen(portNum);
+app.use(express.static("public"));
+
+console.log("server running on port: " + portNum);
+
+// set up socket.io on express server
+var socket = require("socket.io");
+var io = socket(server);
+
+app.get('/', (req,res) => {
+    res.render('index.html');
 });
-const { v4: uuidV4 } = require('uuid')
 
-app.use('/peerjs', peerServer);
+io.on('connection', (socket) => {
+    console.log("new connection: " + socket.id);
 
-app.set('view engine', 'ejs')
-app.use(express.static('public'))
+    socket.on('startPos', (data) => {
+        socket.broadcast.emit('lock');        // broadcast to all sockets except sender who triggered event
+        io.emit('startPos', data);            // broadcast to all sockets, including sender who triggered event
+    });
 
-app.get('/', (req, res) => {
-  res.redirect(`/${uuidV4()}`)
-})
+    socket.on('mousePos', (data) => {
+        socket.broadcast.emit('lock');
+        io.emit('mousePos', data);
+    });
 
-app.get('/:room', (req, res) => {
-  res.render('room', { roomId: req.params.room })
-})
-
-io.on('connection', socket => {
-  socket.on('join-room', (roomId, userId) => {
-    socket.join(roomId)
-    socket.to(roomId).broadcast.emit('user-connected', userId);
-    // messages
-    socket.on('message', (message) => {
-      //send message to the same room
-      io.to(roomId).emit('createMessage', message)
-  }); 
-
-    socket.on('disconnect', () => {
-      socket.to(roomId).broadcast.emit('user-disconnected', userId)
+    socket.on('finishPos', () => {
+        io.emit('finishPos');
     })
-  })
-})
-
-server.listen(process.env.PORT||3030)
+});
